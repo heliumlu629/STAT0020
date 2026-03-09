@@ -78,7 +78,7 @@ print(ga_2020["DAMAGE_PROPERTY"])
 
 
 # ----------------------------
-# 6. Positive-damage subset
+# STEP6: Positive-damage subset
 ga_pos = ga_2020[ga_2020["DAMAGE_PROPERTY"] > 0].copy()
 n_positive = len(ga_pos)
 # Check Minimum sample rule: >50 which is fine
@@ -86,7 +86,7 @@ print('Number of positive damage events:',n_positive)
 
 
 # ----------------------------
-# 7. Summary quantities for Q3(a)
+# STEP7: Summary quantities for Q3(a)
 total_rows = len(ga_2020)
 top3 = (
     ga_pos.sort_values("DAMAGE_PROPERTY", ascending=False)
@@ -100,7 +100,7 @@ print(top3)
 
 
 # ----------------------------
-# 9. Descriptive display: histogram of log positive losses
+# STEP8: Descriptive display: histogram of log positive losses
 plt.figure(figsize=(8, 5))
 plt.hist(np.log10(ga_pos["DAMAGE_PROPERTY"]), bins=30)
 plt.xlabel("log10(Property damage in dollars)")
