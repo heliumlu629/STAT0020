@@ -261,7 +261,7 @@ print("MC Var(S) =", VarS_sim)
 print("VaR_0.99 =", VaR_99)
 print("TVaR_0.99 =", TVaR_99)
 print("SE(E[S]) =", SE_ES)
-
+print("SE(E[S]) as % of estimated mean =", relative_se_pct)
 
 # STEP5: Compare simulation results with theoretical values from Q3(b)
 print("\nComparison with theoretical results:")
@@ -277,8 +277,6 @@ print("Relative difference in Var(S) =", (VarS_sim - VarS) / VarS)
 
 mean_S = sim_S.mean()
 median_S = np.median(sim_S)
-
-q50 = np.quantile(sim_S, 0.50)
 q90 = np.quantile(sim_S, 0.90)
 q95 = np.quantile(sim_S, 0.95)
 q99 = np.quantile(sim_S, 0.99)
@@ -286,7 +284,6 @@ q99 = np.quantile(sim_S, 0.99)
 print("\nAdditional statistics:")
 print("Mean of S =", mean_S)
 print("Median of S =", median_S)
-print("50% quantile =", q50)
 print("90% quantile =", q90)
 print("95% quantile =", q95)
 print("99% quantile =", q99)
@@ -294,7 +291,7 @@ print("99% quantile =", q99)
 
 # STEP6: Plot simulated aggregate loss distribution
 plt.figure(figsize=(8, 5))
-plt.hist(sim_S, bins=60)
+plt.hist(sim_S, bins=80)
 plt.xlabel("Simulated annual aggregate loss S")
 plt.ylabel("Frequency")
 plt.title("Monte Carlo distribution of annual aggregate loss")
@@ -303,30 +300,3 @@ plt.savefig("q3c_simulated_aggregate_loss.png", dpi=300)
 plt.show()
 
 
-# STEP7: Summary table 
-summary_table = pd.DataFrame({
-    "Quantity": [
-        "Number of simulations M",
-        "Random seed",
-        "Theoretical E[S]",
-        "Theoretical Var(S)",
-        "Monte Carlo E[S]",
-        "Monte Carlo Var(S)",
-        "VaR_0.99",
-        "TVaR_0.99",
-        "SE(E[S])" ],
-    "Value": [
-        M,
-        seed,
-        ES,
-        VarS,
-        ES_sim,
-        VarS_sim,
-        VaR_99,
-        TVaR_99,
-        SE_ES ]
-})
-
-
-print("\nResults Summary Table:")
-print(summary_table)
