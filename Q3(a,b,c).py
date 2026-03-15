@@ -192,3 +192,151 @@ print("E[X] =", EX)
 print("Var(X) =", VarX)
 print("E[S] =", ES)
 print("Var(S) =", VarS)
+
+
+
+
+
+
+
+#q3(c)
+# Q3(c)
+# Monte Carlo simulation for annual aggregate loss
+# S = sum_{i=1}^N X_i
+
+# STEP1: Set simulation choices
+M = 100000
+seed = 2026
+np.random.seed(seed)
+
+# STEP2: Negative Binomial parameterisation conversion
+# For monthly count: Var(N_m) = mu + alpha * mu^2  
+# But numpy.random.negative_binomial(n, p) uses: mean = n(1-p)/p, var = n(1-p)/p^2 = mu + mu^2/n
+# so n = 1/alpha, p = n / (n + mu)
+
+if alpha_hat > 0:
+    size_nb = 1 / alpha_hat
+    p_nb = size_nb / (size_nb + mu_hat)
+else:
+    size_nb = None
+    p_nb = None
+
+print("Simulation settings:")
+print("M =", M)
+print("seed =", seed)
+
+if alpha_hat > 0:
+    print("Monthly NB size =", size_nb)
+    print("Monthly NB p =", p_nb)
+else:
+    print("alpha_hat <= 0, NB not appropriate; would need Poisson instead.")
+
+
+# STEP3: Simulate annual aggregate loss
+sim_S = np.zeros(M)
+
+for j in range(M):
+    # simulate 12 monthly counts, then sum to annual count
+    if alpha_hat > 0:
+        monthly_N = np.random.negative_binomial(size_nb, p_nb, size=12)
+    else:
+        monthly_N = np.random.poisson(mu_hat, size=12)
+    
+    N_year = monthly_N.sum()
+    
+    # simulate severities and aggregate loss
+    if N_year > 0:
+        losses = np.random.lognormal(mean=mu_log_hat, sigma=sigma_log_hat, size=N_year)
+        sim_S[j] = losses.sum()
+    else:
+        sim_S[j] = 0.0
+
+
+# STEP4: Monte Carlo estimates
+ES_sim = sim_S.mean()
+VarS_sim = sim_S.var(ddof=1)
+
+# 99% VaR
+VaR_99 = np.quantile(sim_S, 0.99)
+
+# 99% TVaR
+TVaR_99 = sim_S[sim_S >= VaR_99].mean()
+
+# standard error for Monte Carlo estimate of E[S]
+SE_ES = sim_S.std(ddof=1) / np.sqrt(M)
+
+print("\nMonte Carlo results:")
+print("MC E[S] =", ES_sim)
+print("MC Var(S) =", VarS_sim)
+print("VaR_0.99 =", VaR_99)
+print("TVaR_0.99 =", TVaR_99)
+print("SE(E[S]) =", SE_ES)
+
+
+# STEP5: Compare simulation results with theoretical values from Q3(b)
+print("\nComparison with theoretical results:")
+print("Theoretical E[S] =", ES)
+print("Monte Carlo E[S] =", ES_sim)
+print("Difference in E[S] =", ES_sim - ES)
+print("Relative difference in E[S] =", (ES_sim - ES) / ES)
+
+print("Theoretical Var(S) =", VarS)
+print("Monte Carlo Var(S) =", VarS_sim)
+print("Difference in Var(S) =", VarS_sim - VarS)
+print("Relative difference in Var(S) =", (VarS_sim - VarS) / VarS)
+
+mean_S = sim_S.mean()
+median_S = np.median(sim_S)
+
+q50 = np.quantile(sim_S, 0.50)
+q90 = np.quantile(sim_S, 0.90)
+q95 = np.quantile(sim_S, 0.95)
+q99 = np.quantile(sim_S, 0.99)
+
+print("\nAdditional statistics:")
+print("Mean of S =", mean_S)
+print("Median of S =", median_S)
+print("50% quantile =", q50)
+print("90% quantile =", q90)
+print("95% quantile =", q95)
+print("99% quantile =", q99)
+
+
+# STEP6: Plot simulated aggregate loss distribution
+plt.figure(figsize=(8, 5))
+plt.hist(sim_S, bins=60)
+plt.xlabel("Simulated annual aggregate loss S")
+plt.ylabel("Frequency")
+plt.title("Monte Carlo distribution of annual aggregate loss")
+plt.tight_layout()
+plt.savefig("q3c_simulated_aggregate_loss.png", dpi=300)
+plt.show()
+
+
+# STEP7: Summary table 
+summary_table = pd.DataFrame({
+    "Quantity": [
+        "Number of simulations M",
+        "Random seed",
+        "Theoretical E[S]",
+        "Theoretical Var(S)",
+        "Monte Carlo E[S]",
+        "Monte Carlo Var(S)",
+        "VaR_0.99",
+        "TVaR_0.99",
+        "SE(E[S])" ],
+    "Value": [
+        M,
+        seed,
+        ES,
+        VarS,
+        ES_sim,
+        VarS_sim,
+        VaR_99,
+        TVaR_99,
+        SE_ES ]
+})
+
+
+print("\nResults Summary Table:")
+print(summary_table)
